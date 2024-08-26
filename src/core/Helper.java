@@ -60,11 +60,11 @@ public class Helper {
                 title = "HATA!";
             }
             case "done" -> {
-                msg = "İşlem Başarılır!";
+                msg = "İşlem Başarılı!";
                 title = "Sonuç";
             }
             case "error" -> {
-                msg = "Bir hata oluştu!";
+                msg = "Bir Hata Oluştu!";
                 title = "HATA!";
             }
             default -> {

@@ -1,14 +1,12 @@
 package view;
 
 import business.BasketController;
+import business.CartController;
 import business.CustomerController;
 import business.ProductController;
 import core.Helper;
 import core.Item;
-import entity.Basket;
-import entity.Customer;
-import entity.Product;
-import entity.User;
+import entity.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -48,34 +46,47 @@ public class DashboardUI extends JFrame {
     private JPanel panelBasket;
     private JPanel pnl_basket_top;
     private JScrollPane scrl_basket;
+    private JScrollPane scrl_cart;
+
     private JButton btn_basket_reset;
     private JButton btn_basket_new;
     private JLabel lbl_basket_price;
     private JLabel lbl_basket_count;
     private JTable table_basket;
+    private JTable table_cart;
+    private JPanel panelCart;
     private User user;
+
     private CustomerController customerController;
     private ProductController productController;
     private BasketController basketController;
+    private CartController cartController;
+
+
     private DefaultTableModel mdl_customer_table = new DefaultTableModel();
     private DefaultTableModel mdl_product_table = new DefaultTableModel();
     private DefaultTableModel mdl_basket_table = new DefaultTableModel();
+    private DefaultTableModel mdl_cart_table = new DefaultTableModel();
+
+
+
     private JPopupMenu popup_customer = new JPopupMenu();
     private JPopupMenu popup_product = new JPopupMenu();
 
-    public DashboardUI(User user){
+    public DashboardUI(User user) {
         this.user = user;
         this.customerController = new CustomerController();
         this.productController = new ProductController();
         this.basketController = new BasketController();
-        if(user == null){
+        this.cartController = new CartController();
+        if (user == null) {
             Helper.showMsg("error");
             this.dispose();
         }
 
         this.add(container);
         this.setTitle("Müşteri Yönetim Sistemi");
-        this.setSize(1000,500);
+        this.setSize(1000, 500);
         this.setResizable(false);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
@@ -100,8 +111,8 @@ public class DashboardUI extends JFrame {
         loadProductPopupMenu();
         loadProductButtonEvent();
 
-        this.cbox_f_product_stock.addItem(new Item(1,"Stokta Var"));
-        this.cbox_f_product_stock.addItem(new Item(2,"Stokta Yok"));
+        this.cbox_f_product_stock.addItem(new Item(1, "Stokta Var"));
+        this.cbox_f_product_stock.addItem(new Item(2, "Stokta Yok"));
         this.cbox_f_product_stock.setSelectedItem(null);
 
         //BASKET TAB
@@ -109,14 +120,18 @@ public class DashboardUI extends JFrame {
         loadBasketButtonEvent();
         loadBasketCustomerCombo();
 
+
+        //CART TAB
+        loadCartTable();
+
     }
 
 
     //PRODUCT
-    private void loadProductTable(ArrayList<Product> products){
+    private void loadProductTable(ArrayList<Product> products) {
         Object[] columnProduct = {"ID", "Ürün Adı", "Ürün Kodu", "Fiyat", "Stok"};
 
-        if(products == null){
+        if (products == null) {
             products = this.productController.findAll();
         }
 
@@ -127,7 +142,7 @@ public class DashboardUI extends JFrame {
         this.mdl_product_table.setColumnIdentifiers(columnProduct); //modelin columnlarını atadık.
 
 
-        for(Product product : products){
+        for (Product product : products) {
             Object[] rowObject = {
                     product.getId(),
                     product.getName(),
@@ -146,7 +161,7 @@ public class DashboardUI extends JFrame {
 
     }
 
-    private void loadProductButtonEvent(){
+    private void loadProductButtonEvent() {
         this.btn_product_new.addActionListener(e -> {
             ProductUI productUI = new ProductUI(new Product());
             productUI.addWindowListener(new WindowAdapter() {
@@ -189,7 +204,7 @@ public class DashboardUI extends JFrame {
             int selectId = (int) table_product.getValueAt(table_product.getSelectedRow(), 0);
             Product basketProduct = this.productController.getById(selectId);
 
-            if(basketProduct.getStock() <= 0){
+            if (basketProduct.getStock() <= 0) {
                 Helper.showMsg("Bu ürün stokta yoktur!");
             } else {
                 Basket basket = new Basket(basketProduct.getId());
@@ -232,12 +247,11 @@ public class DashboardUI extends JFrame {
     }
 
 
-
     //CUSTOMER
-    private void loadCustomerTable(ArrayList<Customer> customers){
+    private void loadCustomerTable(ArrayList<Customer> customers) {
         Object[] columnCustomer = {"ID", "Müşteri Adı", "Tipi", "Telefon", "E-posta", "Adres"};
 
-        if(customers == null){
+        if (customers == null) {
             customers = this.customerController.findAll();
         }
 
@@ -247,7 +261,7 @@ public class DashboardUI extends JFrame {
         this.mdl_customer_table.setColumnIdentifiers(columnCustomer); //modelin columnlarını atadık.
 
 
-        for(Customer customer : customers){
+        for (Customer customer : customers) {
             Object[] rowObject = {
                     customer.getId(),
                     customer.getName(),
@@ -267,7 +281,7 @@ public class DashboardUI extends JFrame {
 
     }
 
-    private void loadCustomerButtonEvent(){
+    private void loadCustomerButtonEvent() {
         this.btn_customer_new.addActionListener(e -> {
             CustomerUI customerUI = new CustomerUI(new Customer());
             customerUI.addWindowListener(new WindowAdapter() {
@@ -296,7 +310,7 @@ public class DashboardUI extends JFrame {
         });
     }
 
-    private void loadCustomerPopupMenu(){
+    private void loadCustomerPopupMenu() {
         this.table_customer.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -319,12 +333,12 @@ public class DashboardUI extends JFrame {
         });
         this.popup_customer.add("Sil").addActionListener(e -> {
             int selectId = (int) table_customer.getValueAt(table_customer.getSelectedRow(), 0);
-            if(Helper.confirm("sure")){
-                if(this.customerController.delete(selectId)){
+            if (Helper.confirm("sure")) {
+                if (this.customerController.delete(selectId)) {
                     Helper.showMsg("done");
                     loadCustomerTable(null);
                     loadBasketCustomerCombo();
-                }else{
+                } else {
                     Helper.showMsg("error");
                 }
             }
@@ -336,9 +350,8 @@ public class DashboardUI extends JFrame {
     }
 
 
-
     //BASKET
-    private void loadBasketTable(){
+    private void loadBasketTable() {
         Object[] columnBasket = {"ID", "Ürün Adı", "Ürün Kodu", "Fiyat", "Stok"};
         ArrayList<Basket> baskets = this.basketController.findAll();
 
@@ -350,7 +363,7 @@ public class DashboardUI extends JFrame {
         this.mdl_basket_table.setColumnIdentifiers(columnBasket); //modelin columnlarını atadık.
         int totalPrice = 0;
 
-        for(Basket basket : baskets){
+        for (Basket basket : baskets) {
             Object[] rowObject = {
                     basket.getId(),
                     basket.getProduct().getName(),
@@ -375,28 +388,82 @@ public class DashboardUI extends JFrame {
 
     }
 
-    private void loadBasketButtonEvent(){
-
+    public void loadBasketButtonEvent() {
         this.btn_basket_reset.addActionListener(e -> {
-            if(this.basketController.clear()){
+            if (this.basketController.clear()) {
                 Helper.showMsg("done");
                 loadBasketTable();
             } else {
                 Helper.showMsg("error");
             }
         });
+        this.btn_basket_new.addActionListener(e -> {
+
+            Item selectedCustomer = (Item) this.cbox_basket_customer.getSelectedItem();
+            if (selectedCustomer == null){
+                Helper.showMsg("Lütfen Bir Müşteri Seçiniz..!");
+            }else {
+                Customer customer = this.customerController.getById(selectedCustomer.getKey());
+                ArrayList<Basket> baskets = this.basketController.findAll();
+
+                if (customer.getId() == 0){
+                    Helper.showMsg("Böyle Bir Müşteri Bulunamadı !!");
+                }else if(baskets.isEmpty()){//////////// baskets.size() == 0
+                    Helper.showMsg("Lütfen Sepete Ürün Ekleyiniz !!");
+                }else {
+                    CartUI cartUI = new CartUI(customer);
+                    cartUI.addWindowListener(new WindowAdapter() {
+                        @Override
+                        public void windowClosed(WindowEvent e) {
+                            loadBasketTable();
+                            loadCartTable();
+                            loadProductTable(null);
+                        }
+                    });
+                }
+            }
+        });
+
     }
 
-    private void loadBasketCustomerCombo(){
+    private void loadBasketCustomerCombo() {
         ArrayList<Customer> customers = this.customerController.findAll();
         this.cbox_basket_customer.removeAllItems();
-        for(Customer customer : customers){
+        for (Customer customer : customers) {
             int comboKey = customer.getId();
             String comboValue = customer.getName();
-            this.cbox_basket_customer.addItem(new Item(comboKey,comboValue));
+            this.cbox_basket_customer.addItem(new Item(comboKey, comboValue));
         }
 
         this.cbox_basket_customer.setSelectedItem(null);
     }
+    //CART
 
+    public void loadCartTable() {
+        Object[] columnCart = {"ID", "Müşteri Adı", "Ürün Adı", "Fiyat", "Sipariş Tarihi" , "Sipariş Notu"};
+        ArrayList<Cart> carts = this.cartController.findAll();
+
+        //TABLO SIFIRLAMA
+        DefaultTableModel clearModel = (DefaultTableModel) this.table_cart.getModel();
+        clearModel.setRowCount(0);
+
+        this.mdl_cart_table.setColumnIdentifiers(columnCart);
+
+        for (Cart cart : carts) {
+            Object[] rowObject = {
+                    cart.getId(),
+                    cart.getCustomer().getName(),
+                    cart.getProduct().getName(),
+                    cart.getPrice(),
+                    cart.getDate(),
+                    cart.getNote()
+            };
+            this.mdl_cart_table.addRow(rowObject);
+        }
+
+        this.table_cart.setModel(mdl_cart_table);
+        this.table_cart.getTableHeader().setReorderingAllowed(false);
+        this.table_cart.getColumnModel().getColumn(0).setMaxWidth(50);
+        this.table_cart.setEnabled(true);
+    }
 }
