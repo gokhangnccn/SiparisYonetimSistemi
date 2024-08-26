@@ -6,6 +6,11 @@ import entity.Customer;
 import entity.User;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
@@ -27,6 +32,8 @@ public class DashboardUI extends JFrame {
     private JLabel lbl_f_customer_type;
     private User user;
     private CustomerController customerController;
+    private DefaultTableModel mdl_customer_table = new DefaultTableModel();
+    private JPopupMenu popup_customer = new JPopupMenu();
 
     public DashboardUI(User user){
         this.user = user;
@@ -51,10 +58,62 @@ public class DashboardUI extends JFrame {
         });
 
         loadCustomerTable(null);
+        loadCustomerPopupMenu();
+    }
+
+    private void loadCustomerPopupMenu(){
+        this.tableCustomer.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                int selectedRow = tableCustomer.rowAtPoint(e.getPoint());
+                tableCustomer.setRowSelectionInterval(selectedRow, selectedRow);
+            }
+        });
+
+        this.popup_customer.add("Güncelle").addActionListener(e -> {
+            int selectId = (int) tableCustomer.getValueAt(tableCustomer.getSelectedRow(), 0);
+            System.out.println(selectId);
+        });
+        this.popup_customer.add("Sil").addActionListener(e -> {
+            System.out.println("Sil tiklandi");
+        });
+
+
+        this.tableCustomer.setComponentPopupMenu(this.popup_customer);
+
     }
 
     private void loadCustomerTable(ArrayList<Customer> customers){
         Object[] columnCustomer = {"ID", "Müşteri Adı", "Tipi", "Telefon", "E-posta", "Adres"};
 
+        if(customers == null){
+            customers = this.customerController.findAll();
+        }
+
+        //tabloyu sıfırlamak için
+        DefaultTableModel clearModel = (DefaultTableModel) this.tableCustomer.getModel();
+        clearModel.setRowCount(0);
+        this.mdl_customer_table.setColumnIdentifiers(columnCustomer); //modelin columnlarını atadık.
+
+
+        for(Customer customer : customers){
+            Object[] rowObject = {
+                    customer.getId(),
+                    customer.getName(),
+                    customer.getType(),
+                    customer.getPhone(),
+                    customer.getMail(),
+                    customer.getAddress()
+            };
+            this.mdl_customer_table.addRow(rowObject);
+        }
+
+
+        this.tableCustomer.setModel(mdl_customer_table);
+        this.tableCustomer.getTableHeader().setReorderingAllowed(false);
+        this.tableCustomer.getColumnModel().getColumn(0).setMaxWidth(50);
+        this.tableCustomer.setEnabled(false);
+
     }
+
 }
