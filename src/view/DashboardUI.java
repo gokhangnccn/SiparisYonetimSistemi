@@ -3,6 +3,7 @@ package view;
 import business.CustomerController;
 import business.ProductController;
 import core.Helper;
+import core.Item;
 import entity.Customer;
 import entity.Product;
 import entity.User;
@@ -11,6 +12,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class DashboardUI extends JFrame {
     private JPanel container;
@@ -34,7 +36,7 @@ public class DashboardUI extends JFrame {
     private JPanel pnl_product_filter;
     private JTextField txt_f_product_name;
     private JTextField txt_f_product_code;
-    private JComboBox cbox_product_stock;
+    private JComboBox<Item> cbox_f_product_stock;
     private JButton btn_product_filter;
     private JButton btn_product_filter_reset;
     private JButton btn_product_new;
@@ -83,6 +85,13 @@ public class DashboardUI extends JFrame {
         loadProductTable(null);
         loadProductPopupMenu();
         loadProductButtonEvent();
+
+        this.cbox_f_product_stock.addItem(new Item(1,"Stokta Var"));
+        this.cbox_f_product_stock.addItem(new Item(2,"Stokta Yok"));
+        this.cbox_f_product_stock.setSelectedItem(null);
+
+
+
     }
 
     private void loadProductButtonEvent(){
@@ -94,6 +103,24 @@ public class DashboardUI extends JFrame {
                     loadProductTable(null);
                 }
             });
+        });
+
+        this.btn_product_filter.addActionListener(e -> {
+            ArrayList<Product> filteredProducts = this.productController.filter(
+                    this.txt_f_product_name.getText(),
+                    this.txt_f_product_code.getText(),
+                    (Item) this.cbox_f_product_stock.getSelectedItem()
+            );
+            loadProductTable(filteredProducts);
+
+        });
+
+        this.btn_product_filter_reset.addActionListener(e -> {
+            this.txt_f_product_code.setText(null);
+            this.txt_f_product_name.setText(null);
+            this.cbox_f_product_stock.setSelectedItem(null);
+            loadProductTable(null);
+
         });
     }
 
@@ -154,9 +181,11 @@ public class DashboardUI extends JFrame {
             loadCustomerTable(filteredCustomers);
         });
 
-        this.btn_customer_filter_reset.addActionListener(e -> {
+        btn_customer_filter_reset.addActionListener(e -> {
             loadCustomerTable(null);
+            this.txt_f_customer_name.setText(null);
             this.cbox_f_customer_type.setSelectedItem(null);
+
         });
     }
 

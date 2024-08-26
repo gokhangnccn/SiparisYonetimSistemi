@@ -45,7 +45,7 @@ public class CustomerController {
         // SELECT * FROM customer WHERE type  = 'PERSON'
         // SELECT * FROM customer
 
-        String query = "SELECT * FROM customer";
+        String query = "SELECT * FROM public.customer";
         ArrayList<String> whereList = new ArrayList<>();
 
         if (name.length() > 0) {

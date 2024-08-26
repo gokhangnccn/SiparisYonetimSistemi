@@ -100,6 +100,24 @@ public class ProductDao {
         }
         return true;
     }
+
+    public ArrayList<Product> query(String query) {
+        ArrayList<Product> products = new ArrayList<>();
+
+        try {
+            ResultSet rs = this.connection.createStatement().executeQuery(query);
+            while (rs.next()) {
+                products.add(this.match(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+        return products;
+
+    }
+
     public Product match(ResultSet rs) throws SQLException {
         Product product = new Product();
         product.setId(rs.getInt("id"));

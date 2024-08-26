@@ -173,7 +173,7 @@
                       <text value="Stok Durumu"/>
                     </properties>
                   </component>
-                  <component id="eca19" class="javax.swing.JComboBox" binding="cbox_product_stock">
+                  <component id="eca19" class="javax.swing.JComboBox" binding="cbox_f_product_stock">
                     <constraints>
                       <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
