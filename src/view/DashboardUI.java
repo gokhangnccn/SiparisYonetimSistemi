@@ -7,10 +7,7 @@ import entity.User;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
@@ -59,6 +56,22 @@ public class DashboardUI extends JFrame {
 
         loadCustomerTable(null);
         loadCustomerPopupMenu();
+        loadCustomerButtonEvent();
+
+    }
+
+    private void loadCustomerButtonEvent(){
+        btn_customer_new.addActionListener(e -> {
+            CustomerUI customerUI = new CustomerUI(new Customer());
+            customerUI.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    loadCustomerTable(null);
+                }
+            });
+
+
+        });
     }
 
     private void loadCustomerPopupMenu(){
@@ -72,10 +85,25 @@ public class DashboardUI extends JFrame {
 
         this.popup_customer.add("Güncelle").addActionListener(e -> {
             int selectId = (int) tableCustomer.getValueAt(tableCustomer.getSelectedRow(), 0);
-            System.out.println(selectId);
+            Customer editedCustomer = this.customerController.getById(selectId);
+            CustomerUI customerUI = new CustomerUI(this.customerController.getById(selectId));
+            customerUI.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    loadCustomerTable(null);
+                }
+            });
         });
         this.popup_customer.add("Sil").addActionListener(e -> {
-            System.out.println("Sil tiklandi");
+            int selectId = (int) tableCustomer.getValueAt(tableCustomer.getSelectedRow(), 0);
+            if(Helper.confirm("sure")){
+                if(this.customerController.delete(selectId)){
+                    Helper.showMsg("done");
+                    loadCustomerTable(null);
+                }else{
+                    Helper.showMsg("error");
+                }
+            }
         });
 
 
